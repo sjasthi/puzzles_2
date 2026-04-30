@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block title %}Snakes{% endblock %}
+
+{% block content %}
+
+<div class="row pt-4">
+    <!-- Left Sidebar for Settings -->
+    <div class="col-md-3">
+        <div class="card p-4 mb-4 shadow-sm border-0 sticky-top" style="top: 80px;">
+            <h5 class="fw-bold mb-3">Settings</h5>
+            <form method="GET" action="/snakes">
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold">Grid Size</label>
+                    <input type="number" name="grid_size" class="form-control" value="{{ preferences.grid_size }}"
+                        min="10" max="20">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold">Puzzle Count</label>
+                    <input type="number" name="puzzle_count" class="form-control" value="{{ preferences.puzzle_count }}"
+                        min="1" max="100">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold">Language</label>
+                    <select name="language" class="form-select">
+                        <option value="English" {% if preferences.language == 'English' %}selected{% endif %}>English</option>
+                        <option value="Telugu" {% if preferences.language == 'Telugu' %}selected{% endif %}>Telugu</option>
+                    </select>
+                </div>
+
+                <div class="mb-4 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="showSolution" name="show_solution"
+                        {% if preferences.show_solution %}checked{% endif %}>
+                    <label class="form-check-label text-muted fw-bold" for="showSolution">Show Solution</label>
+                </div>
+
+                <button class="btn btn-primary w-100 fw-bold" type="submit">Regenerate Puzzles</button>
+            </form>
+            <hr class="my-4">
+            <div class="text-center no-print">
+                <button class="btn btn-outline-secondary w-100 fw-bold" onclick="window.print()">🖨️ Print
+                    Puzzles</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="col-md-9">
+        {% for puzzle in all_puzzles %}
+        <div class="game-container puzzle-page card p-5 mb-5 shadow-sm border-0">
+            <h2 class="fw-bold mb-3">Snakes Puzzle #{{ loop.index }}</h2>
+            <p class="text-muted">Find the continuous winding path of letters that spells out the hidden quote.</p>
+            <div class="alert alert-light border mb-4">
+                <strong>Quote to find:</strong> {{ puzzle.quote }}
+                <hr>
+                <small class="text-muted">Length: {{ puzzle.quote|length }} characters</small>
+            </div>
+
+            <!-- dynamically set Grid-Template-Columns based on size -->
+            <div class="grid-container" id="grid-{{ loop.index }}"
+                style="grid-template-columns: repeat({{ preferences.grid_size }}, 40px);">
+                {% for row_idx in range(puzzle.grid|length) %}
+                {% for col_idx in range(puzzle.grid[row_idx]|length) %}
+                {% set cell = puzzle.grid[row_idx][col_idx] %}
+                <div class="cell {{ 'disabled' if cell.empty else '' }} {{ 'found' if preferences.show_solution and cell.is_snake else '' }}"
+                    data-row="{{ row_idx }}" data-col="{{ col_idx }}" data-letter="{{ cell.letter }}">
+                    {{ cell|string }}
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

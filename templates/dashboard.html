@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block title %}Puzzle Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <h1 class="display-4 fw-bold">Welcome to Puzzles</h1>
+    <p class="lead text-muted fade-in">Select a puzzle type below to get started and challenge your mind.</p>
+</div>
+
+<div class="row mt-5 g-4 dashboard-cards">
+    <!-- Snakes Card -->
+    <div class="col-md-4">
+        <a href="{{ url_for('snakes') }}" class="text-decoration-none">
+            <div class="card h-100 puzzle-card shadow-sm border-0 snakes-card">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-wrapper mb-3">
+                        <span class="fs-1">🐍</span>
+                    </div>
+                    <h3 class="fw-bold mb-2 text-dark">Snakes</h3>
+                    <p class="text-muted mb-0">Find a continuous winding path of letters to uncover the hidden quote.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- DropQuote Card -->
+    <div class="col-md-4">
+        <a href="{{ url_for('dropquote') }}" class="text-decoration-none">
+            <div class="card h-100 puzzle-card shadow-sm border-0 dropquote-card">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-wrapper mb-3">
+                        <span class="fs-1">⬇️</span>
+                    </div>
+                    <h3 class="fw-bold mb-2 text-dark">Drop Quote</h3>
+                    <p class="text-muted mb-0">Drop columns of letters down into the correct empty grid spaces.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Rebus Card -->
+    <div class="col-md-4">
+        <a href="{{ url_for('rebus') }}" class="text-decoration-none">
+            <div class="card h-100 puzzle-card shadow-sm border-0 rebus-card-link">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-wrapper mb-3">
+                        <span class="fs-1">🧩</span>
+                    </div>
+                    <h3 class="fw-bold mb-2 text-dark">Rebus</h3>
+                    <p class="text-muted mb-0">Guess the hidden word from a picture and position hints.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

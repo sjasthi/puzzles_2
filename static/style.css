@@ -1,0 +1,355 @@
+:root {
+    --primary: #4F46E5;
+    --primary-hover: #4338CA;
+    --bg-light: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text-primary: #1E293B;
+    --text-muted: #64748B;
+    --success: #10B981;
+}
+
+body {
+    font-family: 'Outfit', 'Noto Sans Telugu', sans-serif;
+    display: block;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+}
+
+.layout-navbar {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.layout-navbar .navbar-brand {
+    color: var(--primary) !important;
+}
+
+/* Dashboard Hero */
+.dashboard-hero {
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #E0E7FF 0%, #F3F4F6 100%);
+    border-radius: 16px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Dashboard Cards */
+.puzzle-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.puzzle-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    border-color: var(--primary);
+}
+
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #EEF2FF;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.puzzle-card:hover .icon-wrapper {
+    transform: scale(1.1);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.game-container {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(15, 40px);
+    gap: 10px;
+    margin: 20px auto;
+    width: fit-content;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    user-select: none;
+    transition: background-color 0.2s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* State: Selected (Blue) */
+.cell.selected {
+    background-color: #E0E7FF;
+    border: 2px solid var(--primary);
+}
+
+/* State: Found/Correct (Green/Show Solution) */
+.cell.found {
+    background-color: #D1FAE5;
+    color: var(--success);
+    border: 2px solid var(--success);
+    cursor: default;
+}
+
+@media print {
+    /* Force a page break after every puzzle container */
+    .puzzle-page {
+        page-break-after: always; /* Older browsers */
+        break-after: page;        /* Modern standard */
+    }
+
+    /* Hide the Navbar and buttons from the printed PDF */
+    .navbar, .controls, #message {
+        display: none !important;
+    }
+
+    /* Clean up the styling for printing */
+    body, .game-container {
+        background-color: white !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Ensure colors print correctly (browsers sometimes strip backgrounds) */
+    .cell {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+
+/* ── Drop Quote Puzzle Styles ─────────────────────────────── */
+
+.dq-page {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.dq-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.dq-instructions {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 16px;
+}
+
+/* The whole board: letter bank + arrows + answer grid stacked vertically */
+.dq-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+/* Letter bank row: one column stack per position */
+.dq-letter-bank {
+    display: grid;
+    grid-template-columns: repeat(15, 32px);
+    gap: 4px;
+}
+
+/* One column of stacked letters */
+.dq-col-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Each letter cell in the drop zone */
+.dq-drop-cell {
+    width: 32px;
+    height: 32px;
+    background-color: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* Empty spacer so all columns reach the same height */
+.dq-empty-spacer {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+/* Arrow row between letter bank and answer grid */
+.dq-arrow-row {
+    display: grid;
+    grid-template-columns: repeat(15, 32px);
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.dq-arrow {
+    width: 32px;
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+}
+
+/* Answer grid rows */
+.dq-answer-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dq-answer-row {
+    display: grid;
+    grid-template-columns: repeat(15, 32px);
+    gap: 4px;
+}
+
+/* Blank cell: solver writes the letter here */
+.dq-answer-cell {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.dq-blank {
+    border-bottom: 3px solid #CBD5E1;
+    background-color: transparent;
+}
+
+/* Space between words: shaded black block */
+.dq-space {
+    background-color: #333;
+    border-radius: 2px;
+}
+
+/* Punctuation like comma, period shown as-is */
+.dq-punct {
+    font-size: 16px;
+    color: #333;
+}
+
+/* Print styles */
+@media print {
+    .dq-page {
+        box-shadow: none;
+        margin: 0 auto;
+        padding: 10px;
+    }
+    .dq-drop-cell {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    .dq-space {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+/* Rebus Puzzle Styles */
+
+.rebus-card {
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.rebus-main-img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.rebus-blanks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rebus-blank-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.rebus-pos-num {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 2px;
+}
+
+.rebus-blank-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-bottom: 3px solid #333;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.rebus-revealed {
+    color: var(--success);
+    border-bottom-color: var(--success);
+}
+
+@media print {
+    .rebus-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    .rebus-main-img {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}

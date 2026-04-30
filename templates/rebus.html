@@ -1,0 +1,330 @@
+{% extends "layout.html" %}
+
+{% block title %}Rebus Puzzle{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-md-3">
+    <div class="card p-4 mb-4 shadow-sm border-0 sticky-top" style="top: 80px;">
+      <h5 class="fw-bold mb-3">Settings</h5>
+      <form method="POST" action="/rebus">
+        <div class="mb-3">
+          <label class="form-label text-muted fw-bold">Words <small>(one per line)</small></label>
+          <textarea name="words" class="form-control" rows="5"
+            placeholder="Metro&#10;Python&#10;Flask&#10;River"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-muted fw-bold">Puzzle Count <small>(per word)</small></label>
+          <input type="number" name="puzzle_count" class="form-control"
+                 value="{{ preferences.get('puzzle_count', 10) }}" min="1" max="100">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-muted fw-bold">Language</label>
+          <select name="language" class="form-select">
+              <option value="English" {% if preferences.language == 'English' %}selected{% endif %}>English</option>
+              <option value="Telugu" {% if preferences.language == 'Telugu' %}selected{% endif %}>Telugu</option>
+          </select>
+        </div>
+        
+        <div class="mb-4 form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="showSolution" name="show_solution" {% if preferences.show_solution %}checked{% endif %}>
+          <label class="form-check-label text-muted fw-bold" for="showSolution">Show Solution</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 fw-bold">
+          Generate Puzzles
+        </button>
+      </form>
+      <hr class="my-4">
+      <div class="text-center no-print">
+          <button class="btn btn-outline-secondary w-100 fw-bold" onclick="window.print()">🖨️ Print Puzzles</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-9">
+
+    {% if not all_puzzles %}
+    <div class="alert alert-info mt-4 shadow-sm">
+      Enter words on the left and click <strong>Generate Puzzles</strong> to begin.
+    </div>
+    {% else %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <button class="btn btn-outline-secondary btn-sm px-3"
+              id="prevBtn"
+              onclick="goToPuzzle(-1)"
+              disabled>
+        ← Prev
+      </button>
+
+      <div class="text-center">
+        <h4 class="fw-bold mb-0 text-primary">Rebus Puzzle</h4>
+        <span id="puzzleCounter" class="fw-bold text-muted small">
+          Puzzle 1 of {{ all_puzzles|length }}
+        </span>
+      </div>
+
+      <button class="btn btn-outline-secondary btn-sm px-3"
+              id="nextBtn"
+              onclick="goToPuzzle(1)"
+              {% if all_puzzles|length == 1 %}disabled{% endif %}>
+        Next →
+      </button>
+    </div>
+
+    {% for puzzle in all_puzzles %}
+    <div class="rebus-card card p-4 shadow-sm border-0 mb-4 puzzle-page"
+         id="puzzle-{{ loop.index0 }}"
+         data-word="{{ puzzle.word | b64encode }}"
+         data-language="{{ puzzle.language|default('English') }}"
+         {% if loop.index0 != 0 %}style="display:none;"{% endif %}>
+
+      <div class="rebus-grid mb-4">
+          {% for piece in puzzle.pieces %}
+          <div class="rebus-piece text-center" data-target="{{ piece.target_char | b64encode }}">
+              <div class="rebus-img-container shadow-sm p-1 bg-white mb-2">
+                  <img src="{{ piece.image_url }}" alt="Clue" class="img-fluid rounded">
+              </div>
+            <div class="rebus-hint fw-bold text-uppercase small bg-light p-2 rounded mb-2">
+                  {{ piece.hint }}
+              </div>
+            <input type="text"
+               class="form-control rebus-letter-input text-center fw-bold"
+               maxlength="4"
+               autocomplete="off"
+               oninput="handleLetterInput(this)"
+               onkeydown="handleLetterKeydown(event, this)">
+            <div class="rebus-input-status mt-1"></div>
+          </div>
+          {% endfor %}
+      </div>
+
+      <div class="text-center">
+          <div class="rebus-feedback mb-3 h4"></div>
+
+          <div class="d-flex justify-content-center gap-2 rebus-controls">
+            <button class="btn btn-primary btn-sm fw-bold px-4 rebus-check-btn"
+                onclick="checkAnswer(this)">
+            Check
+            </button>
+            <button class="btn btn-outline-secondary btn-sm fw-bold px-3"
+                onclick="revealSolution(this)">
+            Show Solution
+            </button>
+          </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.rebus-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+.rebus-piece {
+    width: 140px;
+}
+.rebus-img-container {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+.rebus-img-container:hover {
+    transform: scale(1.05);
+}
+.rebus-img-container img {
+    max-height: 100%;
+    width: auto;
+}
+.rebus-letter-input {
+  width: 60px;
+  height: 48px;
+  margin: 0 auto;
+  text-transform: uppercase;
+  font-size: 20px;
+  letter-spacing: 0;
+  padding: 0;
+  border: 2px solid #dee2e6;
+  border-bottom: 4px solid #0d6efd;
+  border-radius: 6px;
+  background: #f8f9fa;
+  background-image: none !important;
+  padding-right: 0 !important;
+}
+.rebus-input-status {
+    height: 24px;
+    font-size: 18px;
+}
+.is-valid + .rebus-input-status::after {
+    content: "✅";
+}
+.is-invalid + .rebus-input-status::after {
+    content: "❌";
+}
+.no-print {
+    margin-top: 10px;
+}
+@media print {
+    .no-print, .sticky-top, button, .rebus-controls, #prevBtn, #nextBtn, #puzzleCounter {
+        display: none !important;
+    }
+    .rebus-card {
+        page-break-after: always;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .col-md-3 { display: none; }
+    .col-md-9 { width: 100%; }
+}
+</style>
+
+{% if all_puzzles %}
+<script>
+
+var currentIndex = 0;
+var total = {{ all_puzzles|length if all_puzzles else 0 }};
+
+// UTF-8 safe Base64 decoding
+function b64ToUtf8(base64) {
+    if (!base64) return '';
+    try {
+        const binString = atob(base64);
+        const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
+        return new TextDecoder().decode(bytes);
+    } catch (e) {
+        console.error("Base64 decode error:", e);
+        return "";
+    }
+}
+
+function getInputs(card){
+  return Array.from(card.querySelectorAll('.rebus-letter-input'));
+}
+
+function goToPuzzle(dir){
+  document.getElementById('puzzle-'+currentIndex).style.display='none';
+  currentIndex=Math.max(0,Math.min(currentIndex+dir,total-1));
+  document.getElementById('puzzle-'+currentIndex).style.display='block';
+  document.getElementById('puzzleCounter').textContent='Puzzle '+(currentIndex+1)+' of '+total;
+  document.getElementById('prevBtn').disabled=currentIndex===0;
+  document.getElementById('nextBtn').disabled=currentIndex===total-1;
+  var card=document.getElementById('puzzle-'+currentIndex);
+  var feedback=card.querySelector('.rebus-feedback');
+  if(feedback) feedback.innerHTML='';
+  getInputs(card).forEach(function(input){
+    input.value='';
+    input.classList.remove('is-invalid','is-valid');
+  });
+}
+
+function handleLetterInput(input){
+  var card = input.closest('.rebus-card');
+  var lang = card.getAttribute('data-language') || 'English';
+
+  if(lang === 'English') {
+    // For English, only allow alphanumeric and auto-advance
+    input.value = input.value.replace(/[^a-zA-Z0-9]/g,'').slice(0,1).toUpperCase();
+  }
+  // For Telugu, allow any character input (no filtering)
+
+  if(!input.value) return;
+  var inputs=getInputs(card);
+  var idx=inputs.indexOf(input);
+  if(idx>-1 && idx<inputs.length-1){
+    inputs[idx+1].focus();
+  }
+}
+
+function handleLetterKeydown(event, input){
+  if(event.key==='Backspace' && !input.value){
+    var inputs=getInputs(input.closest('.rebus-card'));
+    var idx=inputs.indexOf(input);
+    if(idx>0){
+      inputs[idx-1].focus();
+    }
+  }
+  if(event.key==='Enter'){
+    event.preventDefault();
+    var card=input.closest('.rebus-card');
+    checkAnswer(card.querySelector('.rebus-check-btn'));
+  }
+}
+
+function checkAnswer(btn){
+  var card=btn.closest('.rebus-card');
+  var lang = card.getAttribute('data-language') || 'English';
+  var inputs=getInputs(card);
+  var feedback=card.querySelector('.rebus-feedback');
+
+  if(inputs.some(function(i){return !i.value.trim();})){
+    feedback.innerHTML='<span class="text-warning fw-bold">Fill all boxes.</span>';
+    return;
+  }
+
+  // Compare piece-by-piece using the per-piece target char stored in data-target
+  var pieces = Array.from(card.querySelectorAll('.rebus-piece'));
+  var correct = inputs.every(function(input, idx){
+    var piece = pieces[idx];
+    if(!piece) return false;
+    var target = b64ToUtf8(piece.getAttribute('data-target') || '');
+    if(lang === 'English'){
+      return input.value.trim().toUpperCase() === target.toUpperCase();
+    }
+    return input.value.trim() === target;
+  });
+
+  if(correct){
+    feedback.innerHTML='<span class="text-success fw-bold">✓ Correct!</span>';
+    inputs.forEach(function(i){
+      i.classList.remove('is-invalid');
+      i.classList.add('is-valid');
+    });
+    setTimeout(function(){ if(currentIndex<total-1){ goToPuzzle(1); } },1200);
+  }else{
+    feedback.innerHTML='<span class="text-danger fw-bold">✗ Try again.</span>';
+    inputs.forEach(function(i){
+      i.classList.remove('is-valid');
+      i.classList.add('is-invalid');
+    });
+  }
+}
+
+function revealSolution(btn){
+  var card=btn.closest('.rebus-card');
+  var lang = card.getAttribute('data-language') || 'English';
+  var feedback=card.querySelector('.rebus-feedback');
+  var inputs=getInputs(card);
+  var pieces = Array.from(card.querySelectorAll('.rebus-piece'));
+  var displayWord = b64ToUtf8(card.getAttribute('data-word') || '');
+  if(lang === 'English') displayWord = displayWord.toUpperCase();
+
+  // Use per-piece data-target for correct Unicode-safe reveal
+  for(var i=0;i<inputs.length && i<pieces.length;i++){
+    var target = b64ToUtf8(pieces[i].getAttribute('data-target') || '');
+    if(lang === 'English') target = target.toUpperCase();
+    inputs[i].value = target;
+    inputs[i].classList.remove('is-invalid');
+    inputs[i].classList.add('is-valid');
+  }
+  feedback.innerHTML='<span class="text-secondary fw-bold">Answer: '+displayWord+'</span>';
+  btn.disabled=true;
+}
+
+</script>
+{% endif %}
+
+{% endblock %}

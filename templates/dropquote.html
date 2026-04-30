@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block title %}Drop Quote{% endblock %}
+
+{% block content %}
+
+<div class="row pt-4">
+    <!-- Left Sidebar for Settings -->
+    <div class="col-md-3">
+        <div class="card p-4 mb-4 shadow-sm border-0 sticky-top" style="top: 80px;">
+            <h5 class="fw-bold mb-3">Settings</h5>
+            <form method="GET" action="/dropquote">
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold">Puzzle Count</label>
+                    <input type="number" name="puzzle_count" class="form-control" value="{{ preferences.puzzle_count }}" min="1" max="100">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted fw-bold">Language</label>
+                    <select name="language" class="form-select">
+                        <option value="English" {% if preferences.language == 'English' %}selected{% endif %}>English</option>
+                        <option value="Telugu" {% if preferences.language == 'Telugu' %}selected{% endif %}>Telugu</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="showSolution" name="show_solution" {% if preferences.show_solution %}checked{% endif %}>
+                    <label class="form-check-label text-muted fw-bold" for="showSolution">Show Solution</label>
+                </div>
+
+                <button class="btn btn-primary w-100 fw-bold" type="submit">Regenerate Puzzles</button>
+            </form>
+            <hr class="my-4">
+            <div class="text-center no-print">
+                <button class="btn btn-outline-secondary w-100 fw-bold" onclick="window.print()">🖨️ Print Puzzles</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="col-md-9">
+        {% if not all_puzzles %}
+        <div class="alert alert-info mt-4 shadow-sm">
+            No quotes found for the selected language. Add quotes via <a href="{{ url_for('load_quotes_page') }}">Load Quotes</a>.
+        </div>
+        {% endif %}
+
+        {% for puzzle in all_puzzles %}
+        <div class="dq-page puzzle-page card p-5 mb-5 shadow-sm border-0">
+            <h2 class="dq-title fw-bold">Drop Quote &nbsp;#{{ loop.index }}</h2>
+            <p class="dq-instructions text-muted mb-4">Drop the letters from each column into the blank squares below to form a quote.</p>
+
+            <!-- TOP ZONE: shuffled letters falling down per column -->
+            <div class="dq-board">
+                <div class="dq-letter-bank">
+                    {% for col in puzzle.columns %}
+                    <div class="dq-col-stack">
+                        {% for letter in col %}
+                            <div class="dq-drop-cell shadow-sm">{{ letter }}</div>
+                        {% endfor %}
+                        <!-- Empty spacer cells so all columns are same height -->
+                        {% for _ in range(puzzle.max_col_height - col|length) %}
+                            <div class="dq-drop-cell dq-empty-spacer"></div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Divider arrow row -->
+                <div class="dq-arrow-row my-3">
+                    {% for _ in puzzle.columns %}
+                    <div class="dq-arrow text-primary opacity-50">↓</div>
+                    {% endfor %}
+                </div>
+
+                <!-- BOTTOM ZONE: answer grid with blanks and spaces -->
+                <div class="dq-answer-grid">
+
+                    {% for row in puzzle.rows %}
+                    <div class="dq-answer-row">
+                        {% for item in row %}
+                            {% if item.type == 'blank' %}
+                                <div class="dq-answer-cell dq-blank {% if preferences.show_solution %}text-success fw-bold{% endif %}">
+                                    {% if preferences.show_solution %}
+                                        {{ item.char }}
+                                    {% endif %}
+                                </div>
+                            {% elif item.type == 'space' %}
+                                <div class="dq-answer-cell dq-space shadow-sm bg-dark"></div>
+                            {% else %}
+                                <div class="dq-answer-cell dq-punct text-muted">{{ item.char }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div><!-- end dq-board -->
+        </div><!-- end dq-page -->
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
